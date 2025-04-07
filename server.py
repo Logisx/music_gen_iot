@@ -27,40 +27,18 @@ class MusicPreferences(BaseModel):
 @app.post("/generate-music")
 async def generate_music(preferences: MusicPreferences):
     try:
-        # Convert preferences to dict
-        pref_dict = preferences.dict(exclude_none=True)
+        # Convert preferences to dictionary
+        pref_dict = preferences.dict()
         
         # Generate music
         output_file = music_generator.generate_music(pref_dict)
-        output_file = os.path.abspath(output_file)
         
-        # Verify file exists and has content
-        if not os.path.exists(output_file):
-            logger.error(f"Generated file not found at: {output_file}")
-            raise HTTPException(status_code=500, detail="Generated file not found")
-            
-        file_size = os.path.getsize(output_file)
-        if file_size == 0:
-            logger.error(f"Generated file is empty at: {output_file}")
-            raise HTTPException(status_code=500, detail="Generated file is empty")
-            
-        logger.info(f"Serving file: {output_file} (size: {file_size} bytes)")
+        # Return the file path
+        return {"file_path": output_file}
         
-        # Return the generated audio file
-        return FileResponse(
-            output_file,
-            media_type="audio/wav",
-            filename="generated_music.wav",
-            headers={
-                "Content-Disposition": f'attachment; filename="generated_music.wav"'
-            }
-        )
-    except ValueError as e:
-        logger.error(f"Validation error: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.error(f"Error generating music: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Error generating music: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/health")
 async def health_check():

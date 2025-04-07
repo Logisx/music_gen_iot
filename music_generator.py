@@ -9,160 +9,153 @@ import torchaudio
 import uuid
 import logging
 import numpy as np
+from audiocraft.data.audio import audio_read, audio_write
+from datetime import datetime
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class MusicGenerator:
-    def __init__(self, debug_mode=False):
+    def __init__(self, model_id="facebook/musicgen-small", debug_mode=False):
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.debug_mode = debug_mode
-        # Default generation parameters (can be overridden per request)
-        self.default_duration = 8.0
-        self.default_temperature = 1.0
-        self.default_top_k = 250
-        self.default_top_p = 0.0
-        self.default_cfg_coef = 3.0
-        
-        if debug_mode:
-            logger.info("Running in DEBUG mode - will generate dummy files quickly")
-            self.device = 'cpu'
-            self.sample_rate = 32000 # Default sample rate for dummy audio
-        else:
-            # Initialize the model
-            self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-            logger.info(f"Using device: {self.device}")
-            
-            # Load the model
-            self.model = MusicGen.get_pretrained('facebook/musicgen-small', device=self.device)
-            self.sample_rate = self.model.sample_rate
-            
-            # Set default generation parameters (can be overridden)
-            self.model.set_generation_params(
-                duration=self.default_duration,
-                temperature=self.default_temperature,
-                top_k=self.default_top_k,
-                top_p=self.default_top_p,
-                cfg_coef=self.default_cfg_coef
-            )
+        self.model = None
+        self.output_dir = "output"
         
         # Create output directory if it doesn't exist
-        self.output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")
-        logger.info(f"Creating output directory at: {self.output_dir}")
         os.makedirs(self.output_dir, exist_ok=True)
         
+        if not debug_mode:
+            try:
+                self.model = MusicGen.get_pretrained(model_id, device=self.device)
+                # Set optimized parameters for faster generation
+                self.model.set_generation_params(
+                    use_sampling=True,
+                    top_k=50,  # Reduced for faster generation
+                    top_p=0.0,
+                    temperature=1.0,  # Increased for faster generation
+                    cfg_coef=1.5,  # Reduced for faster generation
+                    two_step_cfg=True  # Enable two-step CFG for faster generation
+                )
+                logger.info(f"Model {model_id} loaded successfully on {self.device}")
+            except Exception as e:
+                logger.error(f"Error loading model: {str(e)}")
+                raise
+
     def create_prompt(self, preferences):
-        """Create a prompt from user preferences"""
-        prompt_parts = []
-        
-        if preferences.get('activity'):
-            prompt_parts.append(f"music for {preferences['activity']}")
-        if preferences.get('mood'):
-            prompt_parts.append(f"with {preferences['mood']} mood")
-        if preferences.get('character'):
-            prompt_parts.append(f"that is {preferences['character']}")
-            
-        return " ".join(prompt_parts) if prompt_parts else "calm music"
-    
-    def generate_dummy_audio(self, duration):
-        """Generate a dummy audio file for testing"""
-        # Create a simple sine wave
-        t = np.linspace(0, duration, int(self.sample_rate * duration), False)
-        # Generate a simple melody using different frequencies
-        frequencies = [440, 550, 660, 880]  # A4, C#5, E5, A5
-        audio = np.zeros_like(t)
+        """Create a prompt from user preferences."""
+        activity = preferences.get('activity', '')
+        mood = preferences.get('mood', '')
+        return f"music for {activity} with {mood} mood"
+
+    def generate_dummy_audio(self, duration, sample_rate=32000):
+        """Generate a dummy audio file for testing."""
+        t = torch.linspace(0, duration, int(duration * sample_rate))
+        # Create a simple melody using sine waves
+        frequencies = [440, 554, 659, 880]  # A4, C#5, E5, A5
+        audio = torch.zeros_like(t)
         for i, freq in enumerate(frequencies):
-            start = i * len(t) // len(frequencies)
-            end = (i + 1) * len(t) // len(frequencies)
-            audio[start:end] = 0.5 * np.sin(2 * np.pi * freq * t[start:end])
+            # Create a simple melody pattern
+            start_time = i * duration / len(frequencies)
+            end_time = (i + 1) * duration / len(frequencies)
+            mask = (t >= start_time) & (t < end_time)
+            audio[mask] = 0.5 * torch.sin(2 * np.pi * freq * t[mask])
         
-        # Convert to torch tensor
-        audio_tensor = torch.from_numpy(audio).float()
-        return audio_tensor.unsqueeze(0), self.sample_rate
-    
-    def save_audio(self, audio_tensor, sample_rate, output_path):
-        """Save audio using torchaudio"""
+        # Add some reverb-like effect
+        reverb = torch.zeros_like(audio)
+        for i in range(1, 10):
+            delay = int(0.1 * i * sample_rate)
+            if delay < len(audio):
+                reverb[delay:] += 0.1 / i * audio[:-delay]
+        
+        audio = audio + reverb
+        audio = audio / torch.max(torch.abs(audio))
+        
+        # Reshape to match expected format (batch_size, channels, samples)
+        return audio.unsqueeze(0).unsqueeze(0)
+
+    def save_audio(self, audio, filename, sample_rate=32000):
+        """Save audio using torchaudio."""
         try:
-            # Ensure the output directory exists
-            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            # Ensure audio is on CPU and has correct shape
+            if isinstance(audio, torch.Tensor):
+                audio = audio.cpu()
+                # If audio is 3D (batch, channels, samples), take first batch
+                if audio.dim() == 3:
+                    audio = audio[0]  # Remove batch dimension
+                # If audio is 1D (samples), add channel dimension
+                elif audio.dim() == 1:
+                    audio = audio.unsqueeze(0)  # Add channel dimension
             
-            # Save the audio file using torchaudio
+            # Save using torchaudio
             torchaudio.save(
-                output_path,
-                audio_tensor,  # Expects 2D tensor (channels, samples)
+                filename,
+                audio,
                 sample_rate,
                 format="wav"
             )
-            
-            logger.info(f"Audio saved successfully to {output_path}")
+            logger.info(f"Audio saved successfully to {filename}")
             return True
         except Exception as e:
             logger.error(f"Error saving audio: {str(e)}")
             return False
-    
+
     def generate_music(self, preferences):
-        """Generate music based on user preferences"""
+        """Generate music based on user preferences."""
         try:
-            # Create prompt from preferences
-            prompt = self.create_prompt(preferences)
-            logger.info(f"Generating music for prompt: {prompt}")
-            
-            # Get generation parameters from preferences or use defaults
-            duration = preferences.get('duration', self.default_duration)
-            temperature = preferences.get('temperature', self.default_temperature)
-            top_k = preferences.get('top_k', self.default_top_k)
-            top_p = preferences.get('top_p', self.default_top_p)
-            cfg_coef = preferences.get('cfg_coef', self.default_cfg_coef)
+            # Get parameters from preferences with defaults
+            duration = float(preferences.get('duration', 5.0))
+            temperature = float(preferences.get('temperature', 1.0))  # Default to higher temperature
+            top_k = int(preferences.get('top_k', 50))  # Default to lower top_k
+            top_p = float(preferences.get('top_p', 0.0))
+            cfg_coef = float(preferences.get('cfg_coef', 1.5))  # Default to lower cfg_coef
             
             if self.debug_mode:
-                # Generate dummy audio quickly
-                logger.info("DEBUG MODE: Generating dummy audio...")
-                start_time = time.time()
-                output, current_sample_rate = self.generate_dummy_audio(duration)
-                end_time = time.time()
-                logger.info(f"DEBUG MODE: Dummy audio generation finished in {end_time - start_time:.2f} seconds.")
-                audio_to_save = output.cpu() 
+                # Generate dummy audio for testing
+                output = self.generate_dummy_audio(duration)
+                audio_to_save = output.cpu()
             else:
-                # Generate music using the model
-                logger.info("Starting music generation...")
-                start_time = time.time()
+                # Create prompt from preferences
+                prompt = self.create_prompt(preferences)
+                logger.info(f"Generating music for prompt: {prompt}")
                 
-                # Pass parameters directly to generate
-                output = self.model.generate(
-                    descriptions=[prompt],
+                # Set generation parameters
+                self.model.set_generation_params(
                     duration=duration,
                     temperature=temperature,
                     top_k=top_k,
                     top_p=top_p,
-                    cfg_coef=cfg_coef,
-                    progress=True # Show progress bar if available
+                    cfg_coef=cfg_coef
                 )
-                current_sample_rate = self.sample_rate
+                
+                # Generate music
+                logger.info("Starting music generation...")
+                start_time = time.time()
+                
+                output = self.model.generate([prompt], progress=True)
+                sample_rate = self.model.sample_rate
                 
                 end_time = time.time()
                 logger.info(f"Music generation finished in {end_time - start_time:.2f} seconds.")
+                # Get the first sample from the batch and move to CPU
                 audio_to_save = output[0].cpu()
             
-            # Generate unique filename
-            filename = f"generated_{uuid.uuid4().hex[:8]}.wav"
-            output_path = os.path.join(self.output_dir, filename)
+            # Create filename based on preferences
+            activity = preferences.get('activity', 'unknown')
+            mood = preferences.get('mood', 'unknown')
+            duration_str = f"{int(duration)}s"
+            timestamp = datetime.now().strftime("%H-%M_%Y-%m-%d")
+            filename = os.path.join(self.output_dir, f"{timestamp}_{mood}_{activity}_music_{duration_str}.wav")
             
-            # Save the generated audio
-            logger.info(f"Saving music to {output_path} ...")
+            # Save the audio
+            logger.info(f"Saving music to {filename} ...")
             
-            # Save using torchaudio
-            if not self.save_audio(audio_to_save, current_sample_rate, output_path):
-                raise FileNotFoundError(f"Failed to save audio file at {output_path}")
-            
-            # Verify the file was created
-            if not os.path.exists(output_path):
-                raise FileNotFoundError(f"Failed to save audio file at {output_path}")
-            
-            file_size = os.path.getsize(output_path)
-            logger.info(f"File saved successfully. Size: {file_size} bytes")
-            
-            return output_path
-            
+            if self.save_audio(audio_to_save, filename):
+                return filename
+            else:
+                raise Exception("Failed to save audio file")
+                
         except Exception as e:
-            logger.error(f"Error in generate_music: {str(e)}", exc_info=True)
+            logger.error(f"Error generating music: {str(e)}", exc_info=True)
             raise 
