@@ -34,12 +34,7 @@ python server.py
    curl -X POST "http://localhost:8000/generate-music" \
      -H "Content-Type: application/json" \
      -d '{
-       "mood": "fun",
-       "duration": 15.0,
-       "temperature": 0.8,
-       "top_k": 150,
-       "top_p": 0.0,
-       "cfg_coef": 3.0
+       "mood": "fun"
      }'
    ```
 
@@ -48,12 +43,7 @@ python server.py
    curl -X POST "http://localhost:8000/generate-music" \
      -H "Content-Type: application/json" \
      -d '{
-       "mood": "energetic",
-       "duration": 15.0,
-       "temperature": 0.8,
-       "top_k": 150,
-       "top_p": 0.0,
-       "cfg_coef": 3.0
+       "mood": "energetic"
      }'
    ```
 
@@ -62,12 +52,7 @@ python server.py
    curl -X POST "http://localhost:8000/generate-music" \
      -H "Content-Type: application/json" \
      -d '{
-       "mood": "calm",
-       "duration": 15.0,
-       "temperature": 0.8,
-       "top_k": 150,
-       "top_p": 0.0,
-       "cfg_coef": 3.0
+       "mood": "calm"
      }'
    ```
 
@@ -76,14 +61,11 @@ python server.py
    curl -X POST "http://localhost:8000/generate-music" \
      -H "Content-Type: application/json" \
      -d '{
-       "mood": "romantic",
-       "duration": 15.0,
-       "temperature": 0.8,
-       "top_k": 150,
-       "top_p": 0.0,
-       "cfg_coef": 3.0
+       "mood": "romantic"
      }'
    ```
+
+**Note:** Additional parameters like `duration`, `temperature`, `top_k`, `top_p`, and `cfg_coef` are optional and will use default values if not specified.
 
 ## Notes
 
