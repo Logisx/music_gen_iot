@@ -1,47 +1,96 @@
-# NeuroMusic Generator
+# AI-Generated README
 
-A proof-of-concept service that generates music based on user preferences using AI. This project uses Facebook's MusicGen model to generate short music clips based on text descriptions derived from user preferences.
+**Disclaimer:** This README was generated with the assistance of AI. It is a work in progress and part of a larger project.
 
-## Setup
+## Overview
 
-1. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
+This project is a music generation system designed for cabin hotels in Northern Finland, near lakes and forests. It uses AI to generate music based on user preferences, focusing on mood and activity.
 
-2. Run the server:
+## Features
+
+- Generate music based on mood and optional activity
+- Customizable duration and generation parameters
+- Simple API for easy integration
+
+## Installation
+
+1. Clone the repository.
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+## Usage
+
+Start the server:
 ```bash
 python server.py
 ```
 
-The server will start on `http://localhost:8000`
+### Example Curl Commands
 
-## API Usage
+1. **Fun Mood:**
+   ```bash
+   curl -X POST "http://localhost:8000/generate-music" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "mood": "fun",
+       "duration": 15.0,
+       "temperature": 0.8,
+       "top_k": 150,
+       "top_p": 0.0,
+       "cfg_coef": 3.0
+     }'
+   ```
 
-### Generate Music
+2. **Energetic Mood:**
+   ```bash
+   curl -X POST "http://localhost:8000/generate-music" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "mood": "energetic",
+       "duration": 15.0,
+       "temperature": 0.8,
+       "top_k": 150,
+       "top_p": 0.0,
+       "cfg_coef": 3.0
+     }'
+   ```
 
-Send a POST request to `/generate-music` with JSON body containing preferences:
+3. **Calm Mood:**
+   ```bash
+   curl -X POST "http://localhost:8000/generate-music" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "mood": "calm",
+       "duration": 15.0,
+       "temperature": 0.8,
+       "top_k": 150,
+       "top_p": 0.0,
+       "cfg_coef": 3.0
+     }'
+   ```
 
-```json
-{
-    "activity": "waking up",
-    "character": "unfamiliar",
-    "mood": "cheerful",
-    "language": "wordless"
-}
-```
-
-The server will return a WAV audio file containing the generated music.
-
-## Technical Details
-
-- Uses Facebook's MusicGen model (small version) for music generation
-- Generates 8-second music clips
-- Output is in WAV format
-- Preferences are converted into text prompts for the model
+4. **Romantic Mood:**
+   ```bash
+   curl -X POST "http://localhost:8000/generate-music" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "mood": "romantic",
+       "duration": 15.0,
+       "temperature": 0.8,
+       "top_k": 150,
+       "top_p": 0.0,
+       "cfg_coef": 3.0
+     }'
+   ```
 
 ## Notes
 
-- This is a proof-of-concept implementation
-- The model runs locally and requires sufficient computational resources
-- First generation might take longer as it downloads the model 
+- This project is a work in progress and part of a larger initiative.
+- The music generation parameters can be adjusted to suit specific needs.
+- For more details, refer to the `INSTALLATION.md` and `TESTING.md` files.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details. 

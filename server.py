@@ -1,34 +1,34 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import Optional
 from music_generator import MusicGenerator
-import os
 import logging
+import os
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
-# Initialize with debug mode set to False to use the real model
+
+# Initialize the music generator with debug mode for faster testing
 music_generator = MusicGenerator(debug_mode=False)
 
 class MusicPreferences(BaseModel):
-    activity: Optional[str] = ""  # e.g., "waking up", "working", "traveling"
-    character: Optional[str] = ""  # e.g., "unfamiliar", "popular", "favorite"
-    mood: Optional[str] = ""      # e.g., "energetic", "cheerful", "calm", "sad"
-    duration: Optional[float] = Field(8.0, ge=1.0, le=30.0)  # Duration in seconds
-    temperature: Optional[float] = Field(1.0, ge=0.0, le=1.0)  # Controls randomness
-    top_k: Optional[int] = Field(250, ge=0)  # Top-k sampling
-    top_p: Optional[float] = Field(0.0, ge=0.0, le=1.0)  # Nucleus sampling
-    cfg_coef: Optional[float] = Field(3.0, ge=0.0)  # Classifier-free guidance coefficient
+    mood: str
+    activity: Optional[str] = None
+    duration: float = 5.0
+    temperature: float = 0.5
+    top_k: int = 100
+    top_p: float = 0.0
+    cfg_coef: float = 2.0
 
 @app.post("/generate-music")
 async def generate_music(preferences: MusicPreferences):
     try:
         # Convert preferences to dictionary
-        pref_dict = preferences.dict()
+        pref_dict = preferences.dict(exclude_none=True)
         
         # Generate music
         output_file = music_generator.generate_music(pref_dict)

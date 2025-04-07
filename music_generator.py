@@ -45,9 +45,14 @@ class MusicGenerator:
 
     def create_prompt(self, preferences):
         """Create a prompt from user preferences."""
-        activity = preferences.get('activity', '')
         mood = preferences.get('mood', '')
-        return f"music for {activity} with {mood} mood"
+        activity = preferences.get('activity', '')
+        
+        # Create prompt with or without activity
+        if activity:
+            return f"music for {activity} with {mood} mood"
+        else:
+            return f"music with {mood} mood"
 
     def generate_dummy_audio(self, duration, sample_rate=32000):
         """Generate a dummy audio file for testing."""
