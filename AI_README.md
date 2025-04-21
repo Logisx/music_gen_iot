@@ -21,7 +21,7 @@ The workflow is as follows:
 
 ---
 
-### Planned Implementation Design
+### Implementation Design
 
 The current model is not optimized for real-time music generation. To address this, the following design is proposed:
 1. **Background Generation**: Music generation will be performed in the background, and the results will be cached in a dedicated database.
@@ -29,13 +29,14 @@ The current model is not optimized for real-time music generation. To address th
    - Search the cache for the relevant audio.
    - Stream the audio to the Raspberry Pico.
 
-Key components:
+---
+
+### Code Key components:
 - **`music_generator.py`**: Handles the music generation model. The `generate_music` function in the `MusicGenerator` class is responsible for setting parameters, running the generation process, and saving the output file.
 - **`server.py`**: Simulates a simple server with an API endpoint for testing the system independently of the main application server. Example usage is provided below.
 
 Generated audio files are saved in the `output` folder.
 
-For a demonstration of the generation process, refer to the video at `assets/showcase.mp4`.
 
 ---
 
@@ -69,4 +70,6 @@ curl -X POST "http://localhost:8000/generate-music" \
 }'
 ```
 
-**Note:** Additional parameters like `duration`, `temperature`, `top_k`, `top_p`, and `cfg_coef` are optional and will use default values if not specified. Reference audiocraft meta's repository for more information.
+**Note:** Additional parameters like `duration`, `temperature`, `top_k`, `top_p`, and `cfg_coef` are optional and will use default values if not specified. Reference [Audiocraft](https://github.com/facebookresearch/audiocraft) repository for more information.
+
+Refer to `AI_TESTING.md` for detailed testing instructions.
