@@ -113,11 +113,11 @@ class MusicGenerator:
         """Generate music based on user preferences."""
         try:
             # Get parameters from preferences with defaults
-            duration = float(preferences.get('duration', 5.0))
-            temperature = float(preferences.get('temperature', 1.0))  # Default to higher temperature
-            top_k = int(preferences.get('top_k', 50))  # Default to lower top_k
-            top_p = float(preferences.get('top_p', 0.0))
-            cfg_coef = float(preferences.get('cfg_coef', 1.5))  # Default to lower cfg_coef
+            duration = float(preferences.get('duration', 10.0))
+            temperature = float(preferences.get('temperature', 1.2))  # Default to higher temperature
+            top_k = int(preferences.get('top_k', 100))  # Default to lower top_k
+            top_p = float(preferences.get('top_p', 0.9))
+            cfg_coef = float(preferences.get('cfg_coef', 2.0))  # Default to lower cfg_coef
             
             if self.debug_mode:
                 # Generate dummy audio for testing

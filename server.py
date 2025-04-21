@@ -18,9 +18,9 @@ music_generator = MusicGenerator(debug_mode=False)
 class MusicPreferences(BaseModel):
     mood: str
     activity: Optional[str] = None
-    duration: float = 5.0
-    temperature: float = 0.3  # Lowered for more stability
-    top_k: int = 50          # Reduced for better control
+    duration: float = 10.0
+    temperature: float = 1.2  # Lowered for more stability
+    top_k: int = 100          # Reduced for better control
     top_p: float = 0.9       # Added for nucleus sampling
     cfg_coef: float = 2.0    # Reduced for better balance
 
