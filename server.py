@@ -19,10 +19,10 @@ class MusicPreferences(BaseModel):
     mood: str
     activity: Optional[str] = None
     duration: float = 5.0
-    temperature: float = 0.5
-    top_k: int = 100
-    top_p: float = 0.0
-    cfg_coef: float = 2.0
+    temperature: float = 0.3  # Lowered for more stability
+    top_k: int = 50          # Reduced for better control
+    top_p: float = 0.9       # Added for nucleus sampling
+    cfg_coef: float = 2.0    # Reduced for better balance
 
 @app.post("/generate-music")
 async def generate_music(preferences: MusicPreferences):
@@ -56,4 +56,4 @@ async def iot_control(command: dict):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    uvicorn.run(app, host="0.0.0.0", port=8000)

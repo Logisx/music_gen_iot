@@ -26,18 +26,10 @@ class MusicGenerator:
         # Create output directory if it doesn't exist
         os.makedirs(self.output_dir, exist_ok=True)
         
+        # Remove parameter setting from the constructor
         if not debug_mode:
             try:
                 self.model = MusicGen.get_pretrained(model_id, device=self.device)
-                # Set optimized parameters for faster generation
-                self.model.set_generation_params(
-                    use_sampling=True,
-                    top_k=50,  # Reduced for faster generation
-                    top_p=0.0,
-                    temperature=1.0,  # Increased for faster generation
-                    cfg_coef=1.5,  # Reduced for faster generation
-                    two_step_cfg=True  # Enable two-step CFG for faster generation
-                )
                 logger.info(f"Model {model_id} loaded successfully on {self.device}")
             except Exception as e:
                 logger.error(f"Error loading model: {str(e)}")
@@ -53,6 +45,17 @@ class MusicGenerator:
             return f"music for {activity} with {mood} mood"
         else:
             return f"music with {mood} mood"
+            """ 
+            if mood == 'romantic':
+                return "Generate a slow-tempo romantic instrumental with soft piano, gentle strings, and a warm, emotional atmosphere. Ideal for a love scene or a quiet evening together."
+            elif mood == 'fun':
+                return "Generate a fun and upbeat instrumental with lively drums, catchy melodies, and a joyful atmosphere. Perfect for a party or celebration."
+            elif mood == 'calm':
+                return "Generate a calm and relaxing instrumental with soft acoustic guitar, gentle piano, and a serene atmosphere. Ideal for meditation or a peaceful evening."
+            elif mood == 'energetic':
+                return "Generate an energetic and fast-paced instrumental with driving drums, electric guitar, and an exciting atmosphere. Perfect for a workout or high-energy activity."
+            else:
+            """                
 
     def generate_dummy_audio(self, duration, sample_rate=32000):
         """Generate a dummy audio file for testing."""
@@ -163,4 +166,4 @@ class MusicGenerator:
                 
         except Exception as e:
             logger.error(f"Error generating music: {str(e)}", exc_info=True)
-            raise 
+            raise
