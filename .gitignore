@@ -42,6 +42,14 @@ output/
 *.flac
 *.m4a
 
+archive_output/
+*.wav
+*.mp3
+*.ogg
+*.flac
+*.m4a
+
+
 # Logs
 *.log
 logs/ 

@@ -1,7 +1,3 @@
-# AI-Generated README
-
-**Disclaimer:** This README was generated with the assistance of AI. It is a work in progress and part of a larger project.
-
 ## Overview
 
 This project is a music generation system designed for cabin hotels in Northern Finland, near lakes and forests. It uses AI to generate music based on user preferences, focusing on mood and activity.
