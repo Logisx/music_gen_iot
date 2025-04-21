@@ -32,10 +32,16 @@ python server.py
 1. **Fun Mood:**
    ```bash
    curl -X POST "http://localhost:8000/generate-music" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "mood": "fun"
-     }'
+    -H "Content-Type: application/json" \
+    -d '{
+      "mood": "fun",
+      "activity": "",
+      "duration": 10.0,
+      "temperature": 1.2,
+      "top_k": 100,
+      "top_p": 0.9,
+      "cfg_coef": 2.0
+    }'
    ```
 
 2. **Energetic Mood:**
